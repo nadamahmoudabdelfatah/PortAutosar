@@ -10,6 +10,7 @@
  ******************************************************************************/
 //revise errors
 //revised errors in init, set pin, set direction
+//revise 28
 #include "Port.h"
 #include "Port_Regs.h"
 #if (PORT_DEV_ERROR_DETECT == STD_ON)
@@ -79,7 +80,7 @@ void Port_Init(const Port_ConfigType* ConfigPtr)
 		for(Port_Pinindex=0;Port_Pinindex<PORT_CONFIGURED_CHANNLES;Port_Pinindex++)
 		{               
 			//revise this switch
-			Port_Setport(Port_PortChannels[Port_Pinindex].pin_num);
+			Port_Setport(Port_PortChannels[Port_Pinindex].Port_PinId);
 
 			/* Enable clock for PORT and allow time for clock to start*/
 			SYSCTL_REGCGC2_REG |= (1<<Port_PortChannels[Port_Pinindex].port_num);
@@ -87,7 +88,7 @@ void Port_Init(const Port_ConfigType* ConfigPtr)
 			//revise
 
 				//
-			        Port_Setpin(Port_PortChannels[Port_Pinindex].pin_num, &Port_PinNum);
+			        Port_Setpin(Port_PortChannels[Port_Pinindex].Port_PinId, &Port_PinNum);
 				//
 				if( ((Port_PortChannels[Port_Pinindex].port_num == 3) && (Port_PinNum == 7)) || ((Port_PortChannels[Port_Pinindex].port_num == 5) && (Port_PinNum == 0)) ) /* PD7 or PF0 */
 				{
@@ -104,10 +105,10 @@ void Port_Init(const Port_ConfigType* ConfigPtr)
 				{
 					/* Do Nothing ... No need to unlock the commit register for this pin */
 				}
-				Port_Setmode(Port_PortChannels[Port_Pinindex].pin_num, Port_PinNum, Port_PortChannels[Port_Pinindex].mode);
+				Port_Setmode(Port_PortChannels[Port_Pinindex].Port_PinId, Port_PinNum, Port_PortChannels[Port_Pinindex].Port_PinInitialMode);
 				//mode removed from here
 
-				Port_Initdirection(Port_PortChannels[Port_Pinindex].pin_num, Port_PinNum, ConfigPtr);
+				Port_Initdirection(Port_PortChannels[Port_Pinindex].Port_PinId, Port_PinNum, ConfigPtr);
 
 			
 		}
@@ -128,7 +129,7 @@ void Port_Init(const Port_ConfigType* ConfigPtr)
 ************************************************************************************/
 
 #if (PORT_SET_PIN_DIRECTION_API==STD_ON)
-void Port_SetPinDirection( Port_PinType Pin, Port_PinDirectionType Direction )
+void Port_SetPinDirection( Port_PinType Pin, Port_PinDirection Direction )
 {
 	Port_PinType Port_PinNum;
 #if (PORT_DEV_ERROR_DETECT == STD_ON)
@@ -138,6 +139,19 @@ void Port_SetPinDirection( Port_PinType Pin, Port_PinDirectionType Direction )
 		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, PORT_INIT_SID,
 				PORT_E_MODE_UNCHANGEABLE);
 	}
+        else
+        {
+          /*Nothing to do*/
+        }
+          if(Port_Status != PORT_INITIALIZED)
+          {
+            		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, PORT_INIT_SID,
+				PORT_E_UNINIT);
+          }
+          else
+          {
+            /*Nothing to do*/
+          }
 	if(Pin >= PORT_CONFIGURED_CHANNLES)
 	{
 		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, PORT_INIT_SID,
@@ -181,11 +195,34 @@ void Port_RefreshPortDirection( void )
 	{
 #if (PORT_DEV_ERROR_DETECT == STD_ON)
           if(Port_PortChannels[Port_Pinindex].PortPinDirectionChangeable == STD_OFF)
+          {
 		continue;
-
+          }
+          else
+          {
+            /*Nothing to do*/
+          }
+          if(Port_Status != PORT_INITIALIZED)
+          {
+            		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, PORT_INIT_SID,
+				PORT_E_UNINIT);
+          }
+          else
+          {
+            /*Nothing to do*/
+          }
+                    if(Port_Status != PORT_INITIALIZED)
+          {
+            		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, PORT_INIT_SID,
+				PORT_E_UNINIT);
+          }
+          else
+          {
+            /*Nothing to do*/
+          }
                 
 #endif  
-		Port_Setpin(Port_PortChannels[Port_Pinindex].pin_num, &Port_PinNum);
+		Port_Setpin(Port_PortChannels[Port_Pinindex].Port_PinId, &Port_PinNum);
 		Port_Setport(Port_Pinindex);
 		if(Port_PortChannels[Port_Pinindex].direction == PORT_PIN_OUT)
 		{
@@ -254,6 +291,7 @@ void Dio_GetVersionInfo(Std_VersionInfoType *versioninfo)
 * Description: Function to Sets the port pin direction.
 ************************************************************************************/
 
+#if (PORT_SET_PIN_MODE_API==STD_ON)
 void Port_SetPinMode( Port_PinType Pin, Port_PinModeType Mode )
 {
 #if (PORT_DEV_ERROR_DETECT == STD_ON)    /* Report Errors */
@@ -271,7 +309,19 @@ void Port_SetPinMode( Port_PinType Pin, Port_PinModeType Mode )
 		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID,
 				PORT_SET_PIN_MODE_SID, PORT_E_PARAM_INVALID_MODE);
 	}
-
+                  else
+          {
+            /*Nothing to do*/
+          }
+                  if(Port_Status != PORT_INITIALIZED)
+          {
+            		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, PORT_INIT_SID,
+				PORT_E_UNINIT);
+          }
+          else
+          {
+            /*Nothing to do*/
+          }
 	/* Report error if the pin mode is not changeable */
 	if (Port_PortChannels[Pin].PortPinDirectionChangeable == STD_OFF)         
 	{
@@ -287,6 +337,7 @@ void Port_SetPinMode( Port_PinType Pin, Port_PinModeType Mode )
 		Port_Setmode(Pin,Port_PinNum, Mode);
 	}
 }
+#endif
 
 /************************************************************************************
 * Service Name: Port_Setpin
@@ -382,13 +433,13 @@ static void Port_Setmode(Port_PinType Pin, Port_PinType Port_PinNum, Port_PinMod
 	Port_Setport(Pin);
 	switch (Mode)  
 	{
-	case DIO:
+	case PORT_PIN_MODE_DIO:
 		SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DIGITAL_ENABLE_REG_OFFSET) , Port_PinNum);      /* Set the corresponding bit in the GPIODEN register to enable digital functionality on this pin */  
 		CLEAR_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_ANALOG_MODE_SEL_REG_OFFSET) , Port_PinNum);      /* Clear the corresponding bit in the GPIOAMSEL register to disable analog functionality on this pin */
 		CLEAR_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_ALT_FUNC_REG_OFFSET) , Port_PinNum);             /* Disable Alternative function for this pin by clear the corresponding bit in GPIOAFSEL register */
 		*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_CTL_REG_OFFSET) &= ~(DIO_PMCx_BITS << (Port_PinNum * 4));     /* Clear the PMCx bits for this pin */
 		break;
-	case ADC:
+	case  PORT_PIN_MODE_ADC:
 		if(Pin != PE5 && Pin != PE4 && Pin != PE3 && Pin != PE2 && Pin != PE1 && Pin != PE0 && Pin != PD3 && Pin != PD2 && Pin != PD1 && Pin != PD0 && Pin != PB5 && Pin != PB4)
 		{
 			return;
@@ -404,7 +455,7 @@ static void Port_Setmode(Port_PinType Pin, Port_PinType Port_PinNum, Port_PinMod
 			SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_ANALOG_MODE_SEL_REG_OFFSET) , Port_PinNum);      /* Set the corresponding bit in the GPIOAMSEL register to disable analog functionality on this pin */
 		}
 		break;
-	case PWM:
+	case  PORT_PIN_MODE_PWM:
 		if(Pin != PA6 && Pin != PA7 && Pin != PB4 && Pin != PB5 && Pin != PB6 && Pin != PD0 && Pin != PD1 && Pin != PD2 && Pin != PD6 && Pin != PC4 && Pin != PC5 && Pin != PE4 && Pin != PE5 && Pin != PF0 && Pin != PF1 && Pin != PF2 && Pin != PF3 && Pin != PF4)
 		{
 			return;
@@ -434,7 +485,7 @@ static void Port_Initdirection(Port_PinType Pin, Port_PinType Port_PinNum, const
 	{
 		SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DIR_REG_OFFSET) , Port_PinNum);                /* Set the corresponding bit in the GPIODIR register to configure it as output pin */
 
-		if(Port_PortChannels[Pin].initial_value == STD_HIGH)
+		if(Port_PortChannels[Pin].initial_value == PORT_PIN_LEVEL_HIGH)
 		{
 			SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DATA_REG_OFFSET) , Port_PinNum);          /* Set the corresponding bit in the GPIODATA register to provide initial value 1 */
 		}

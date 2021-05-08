@@ -138,19 +138,24 @@ typedef uint8 Port_PinModeType;
 /* Type definition for Port_PinInitialValueType used by the Port APIs */
 typedef uint8 Port_PinInitialValueType;
 
-/* Type definition for Port_PinDirectionType used by the Port APIs */
 
+/* Type definition for Port_PinLevelValue used by the Port APIs */
+typedef enum
+{
+    PORT_PIN_LEVEL_LOW ,PORT_PIN_LEVEL_HIGH
+}Port_PinLevelValue;
+
+/* Type definition for Port_PinDirectionType used by the Port APIs */
 typedef enum
 {
     PORT_PIN_IN,PORT_PIN_OUT
-}Port_PinDirectionType;
+}Port_PinDirection;
 
-/* Type definition for Port_Pinmodes used by the Port APIs */
-/* Description: Enum to hold internal resistor type for PIN */
+/* Type definition for Port_PinModes used by the Port APIs */
 typedef enum
 {
-    DIO,ADC,PWM 
-}Port_Pinemodeenum;
+  PORT_PIN_MODE_DIO, PORT_PIN_MODE_ADC, PORT_PIN_MODE_PWM
+}Port_PinMode;
 
 //revise this
 /* Description: Enum to hold internal resistor type for PIN */
@@ -160,14 +165,15 @@ typedef enum
 }Port_InternalResistorType;
 
 /* Data Structure required for initializing the Port Driver */
+//REVISE NAMING AGAIN
 typedef struct Port_ConfigChannel
 {
     Port_PortType port_num; 
-    Port_PinType pin_num; 
-    Port_PinDirectionType direction;
+    Port_PinType Port_PinId; 
+    Port_PinDirection direction;
     Port_InternalResistorType resistor;
     Port_PinInitialValueType initial_value;
-    Port_PinModeType mode;
+    Port_PinModeType Port_PinInitialMode;
     uint8 PortPinDirectionChangeable;
     uint8 PortPinModeChangeable;
 } Port_ConfigChannel;
@@ -184,7 +190,7 @@ typedef struct Port_ConfigType
 //nada added this
 void Port_Init(const Port_ConfigType* ConfigPtr);
 
-void Port_SetPinDirection( Port_PinType Pin, Port_PinDirectionType Direction );
+void Port_SetPinDirection( Port_PinType Pin, Port_PinDirection Direction );
 
 void Port_RefreshPortDirection( void );
 

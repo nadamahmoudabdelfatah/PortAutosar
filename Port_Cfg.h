@@ -30,10 +30,13 @@
 #define PORT_DEV_ERROR_DETECT                (STD_ON)
 
 /* Pre-compile option for Version Info API */
-#define PORT_VERSION_INFO_API                (STD_OFF)
+#define PORT_VERSION_INFO_API                (STD_OON)
 
 /* Pre-compile option for Pin Direction API */
 #define PORT_SET_PIN_DIRECTION_API               (STD_ON)
+
+/* Pre-compile option for Pin Mode API */
+#define PORT_SET_PIN_MODE_API               (STD_ON)
        
  /* Pre-compile option for Pin Direction change API */
 #define PORT_PIN_DIRECTION_CHANGEABLE           (STD_ON)
